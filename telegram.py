@@ -48,6 +48,11 @@ while True:
                 if call.message.text == 'Какая-то ошибка':
                     bot.delete_message(call.message.chat.id,
                                        call.message.message_id)
+                    try:
+                        user_dict[call.message.chat.id] = None
+                    except:
+                        start_mes(call.message)
+                        return
                 else:
                     bot.edit_message_reply_markup(call.message.chat.id,
                                                   call.message.message_id)
@@ -86,27 +91,28 @@ while True:
                     break
             return aboba
 
-        def scorecalc(guess, chosen):
-            bulls = cows = 0
-            for g, c in zip(guess, chosen):
-                if g == c:
-                    bulls += 1
-                elif g in chosen:
-                    cows += 1
-            return bulls, cows
+        def gen_num_hard(user1, user_id):
 
-        def gen_num_hard(user1):
-            ans = user1.choices[0]
+            def scorecalc(guess, chosen):
+                bulls = cows = 0
+                for g, c in zip(guess, chosen):
+                    if g == c:
+                        bulls += 1
+                    elif g in chosen:
+                        cows += 1
+                return bulls, cows
+
+            ans = user1[user_id].choices[0]
             bik, korova = 0, 0
             for i in range(4):
-                if user1.num1[i] == ans[i]:
+                if user1[user_id].num1[i] == ans[i]:
                     bik += 1
-                elif user1.num1[i] in ans:
+                elif user1[user_id].num1[i] in ans:
                     korova += 1
             score = (bik, korova)
-            user1.choices = [
-                c for c in user1.choices if scorecalc(c, ans) == score]
-            return user1, bik, korova
+            user1[user_id].choices = [
+                c for c in user1[user_id].choices if scorecalc(c, ans) == score]
+            return user1[user_id], bik, korova
 
         def bull(bik):
             if(bik == 0):
@@ -432,9 +438,16 @@ while True:
                                            + ', загадайте число', reply_markup=markup)
                 bot.register_next_step_handler(msg, inp_int)
                 return
-            elif message.text == 'Легко' or message.text == 'Средне':
+            elif message.text == 'Легко':
                 user_dict[message.chat.id].name = message.text
-                user_dict[message.chat.id].num2 = gen_num()
+                user_dict[message.chat.id].choices = []
+                while True:
+                    user_dict[message.chat.id].num2 = gen_num()
+                    if user_dict[message.chat.id].num2 not in user_dict[message.chat.id].choices:
+                        user_dict[message.chat.id].choices.append(
+                            user_dict[message.chat.id].num2)
+                    else:
+                        break
                 markup = types.ReplyKeyboardRemove(selective=False)
                 try:
                     msg = bot.send_message(message.chat.id, message.from_user.first_name
@@ -502,7 +515,7 @@ while True:
                 # Число бота
                 if user_dict[message.chat.id].name == 'Сложно':
                     user_dict[message.chat.id], bik1, korova1 = gen_num_hard(
-                        user_dict[message.chat.id])
+                        user_dict, message.chat.id)
                 elif user_dict[message.chat.id].name == 'Легко':
                     bik1, korova1 = 0, 0
                     num_gen = gen_num()
@@ -533,8 +546,12 @@ while True:
                     user_dict[message.chat.id] = None
                     return
                 elif bik1 == 4:
+                    str_num2 = ''
+                    for x in user_dict[message.chat.id].num2:
+                        str_num2 += str(x)
                     bot.send_message(
-                        message.chat.id, "Вы проиграли компьютеру")
+                        message.chat.id, "Вы проиграли компьютеру\n"
+                        + "Компьютер загадал число " + str_num2)
                     t = randbelow(4)
                     if t == 0:
                         gif = open('lose1.gif', 'rb')
