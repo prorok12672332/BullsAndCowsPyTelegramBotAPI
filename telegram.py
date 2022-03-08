@@ -24,23 +24,15 @@ rules = "Суть игры в следующем. Каждый из против
         "3275 и названо число 1234, получаем в названном числе "\
         "одного «быка» и одну «корову».\nОчевидно, что число "\
         "отгадано в том случае, если имеем 4 «быка»)"
-
+try:
+    bot = telebot.TeleBot(token)
+except Exception as e:
+    print(e.args)
+    print('С токеном или ботом что-то не так')
 
 while True:
     try:
-        try:
-            bot = telebot.TeleBot(token)
-        except Exception as e:
-            print(e.args)
-            print('С токеном или ботом что-то не так')
         user_dict = {}
-
-        class User:
-            def __init__(self):
-                self.name = ''
-                self.num1 = []
-                self.num2 = []
-                self.choices = []
 
         @bot.callback_query_handler(func=lambda call: True)
         def callback_inline(call):
@@ -63,10 +55,12 @@ while True:
         @bot.message_handler(commands=['start', 'begin', 'старт'])
         def start_mes(message):
             try:
-                # markup = types.ReplyKeyboardRemove(selective=False)
-                # bot.send_message(message.chat.id,
-                #                  'Добро пожаловать в бота для\nигры в "Быки и Коровы"',
-                #                  reply_markup=markup)
+                class User:
+                    def __init__(self):
+                        self.name = ''
+                        self.num1 = []
+                        self.num2 = []
+                        self.choices = []
                 user_dict[message.chat.id] = User
                 markup = types.ReplyKeyboardMarkup(one_time_keyboard=True,
                                                    resize_keyboard=True, row_width=2)
@@ -414,6 +408,7 @@ while True:
                 return
 
         # Против компьютера
+
         def hardness(message):
             if message.text == 'Сложно':
                 user_dict[message.chat.id].name = message.text
@@ -585,10 +580,6 @@ while True:
                                  reply_markup=back())
                 return
 
-        bot.enable_save_next_step_handlers(delay=2)
-        bot.load_next_step_handlers()
-        bot.polling()
-
-    except Exception as e:
-        print(e)
+        bot.infinity_polling()
+    except:
         sleep(0.5)
