@@ -1,9 +1,9 @@
 import telebot
 from telebot import types
 from time import sleep
-from secrets import randbelow
-from random import shuffle
+from secrets import randbelow, SystemRandom
 
+random = SystemRandom()
 tokenf = open('token.txt', 'r')
 if tokenf.readline()[-1] == '\n':
     tokenf.seek(0)
@@ -421,7 +421,7 @@ while True:
                                 if len(num) == len(set(num)):
                                     user_dict[message.chat.id].choices.append(
                                         num)
-                shuffle(user_dict[message.chat.id].choices)
+                random.shuffle(user_dict[message.chat.id].choices)
                 user_dict[message.chat.id].num2 = list(
                     map(lambda x: int(x), list(user_dict[message.chat.id].choices[0])))
                 markup = types.ReplyKeyboardRemove(selective=False)
